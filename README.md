@@ -8,9 +8,11 @@
   The voxel position is based on the index of the color in the vector. It is flattened as a 1D vector from the get-go, and accessed by using three dimensional indices like a 3D array. 
   The formula for converting from 3D indices to the index in the vector is:
 </p>
+
 ```c++
 index = x + y * chunkSize + z * chunkSize * chunkSize;
 ```
+
 <p>
   As of now, this class is pretty open, with the chunk size and voxel size easily changeable. In the future, the structure of the chunks will be stabilized and the class will become more encapsulated.
 </p>
