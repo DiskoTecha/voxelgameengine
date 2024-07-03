@@ -1,0 +1,248 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\dylan\\source\\repos\\opengl\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\shader.comp||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:shader.comp||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\Chunk.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:Chunk.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\shader.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:shader.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\shader.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:shader.frag||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\backup.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:backup.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\Compute.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:Compute.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\Vector3.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:Vector3.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\Vector3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:Vector3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\ShaderCombined.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:ShaderCombined.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\raytracingshader.comp||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:raytracingshader.comp||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|C:\\Users\\dylan\\source\\repos\\opengl\\voxelFunctions.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{143374A8-52BD-425D-97A9-CECAC8FA3D6A}|opengl.vcxproj|solutionrelative:voxelFunctions.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Main.cpp",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\Main.cpp",
+              "RelativeDocumentMoniker": "Main.cpp",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\Main.cpp",
+              "RelativeToolTip": "Main.cpp",
+              "ViewState": "AQIAAKUAAAAAAAAAAAAAALkAAAARAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-06-02T19:51:16.514Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "shader.comp",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\shader.comp",
+              "RelativeDocumentMoniker": "shader.comp",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\shader.comp",
+              "RelativeToolTip": "shader.comp",
+              "ViewState": "AQIAALYAAAAAAAAAAAAUwEEBAAAvAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-06-02T23:45:48.344Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Chunk.h",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\Chunk.h",
+              "RelativeDocumentMoniker": "Chunk.h",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\Chunk.h",
+              "RelativeToolTip": "Chunk.h",
+              "ViewState": "AQIAAHgAAAAAAAAAAAAAAH0AAAADAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-06-09T03:27:08.749Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ShaderCombined.h",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\ShaderCombined.h",
+              "RelativeDocumentMoniker": "ShaderCombined.h",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\ShaderCombined.h",
+              "RelativeToolTip": "ShaderCombined.h",
+              "ViewState": "AQIAAGYAAAAAAAAAAAAAAGYAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-06-10T20:35:09.088Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Vector3.cpp",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\Vector3.cpp",
+              "RelativeDocumentMoniker": "Vector3.cpp",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\Vector3.cpp",
+              "RelativeToolTip": "Vector3.cpp",
+              "ViewState": "AQIAANUAAAAAAAAAAAAcwOIAAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-06-09T03:26:00.77Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Vector3.h",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\Vector3.h",
+              "RelativeDocumentMoniker": "Vector3.h",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\Vector3.h",
+              "RelativeToolTip": "Vector3.h",
+              "ViewState": "AQIAAAwAAAAAAAAAAAAAADMAAAAmAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-06-09T03:25:44.124Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "raytracingshader.comp",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\raytracingshader.comp",
+              "RelativeDocumentMoniker": "raytracingshader.comp",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\raytracingshader.comp",
+              "RelativeToolTip": "raytracingshader.comp",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAhAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-06-09T02:47:44.607Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "voxelFunctions.cpp",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\voxelFunctions.cpp",
+              "RelativeDocumentMoniker": "voxelFunctions.cpp",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\voxelFunctions.cpp",
+              "RelativeToolTip": "voxelFunctions.cpp",
+              "ViewState": "AQIAAHMAAAAAAAAAAAAAAOAAAAAEAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-06-08T09:01:06.341Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "backup.txt",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\backup.txt",
+              "RelativeDocumentMoniker": "backup.txt",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\backup.txt",
+              "RelativeToolTip": "backup.txt",
+              "ViewState": "AQIAAGMAAAAAAAAAAAAAwA8BAAABAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2024-06-07T23:44:05.993Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "shader.vert",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\shader.vert",
+              "RelativeDocumentMoniker": "shader.vert",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\shader.vert",
+              "RelativeToolTip": "shader.vert",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-06-05T07:46:03.525Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "shader.frag",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\shader.frag",
+              "RelativeDocumentMoniker": "shader.frag",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\shader.frag",
+              "RelativeToolTip": "shader.frag",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-06-05T07:47:25.314Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Shader.cpp",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\Shader.cpp",
+              "RelativeDocumentMoniker": "Shader.cpp",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\Shader.cpp",
+              "RelativeToolTip": "Shader.cpp",
+              "ViewState": "AQIAADAAAAAAAAAAAAAIwEsAAAAaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-06-05T07:19:58.483Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Shader.h",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\Shader.h",
+              "RelativeDocumentMoniker": "Shader.h",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\Shader.h",
+              "RelativeToolTip": "Shader.h",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAASAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-06-05T07:14:12.985Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Compute.h",
+              "DocumentMoniker": "C:\\Users\\dylan\\source\\repos\\opengl\\Compute.h",
+              "RelativeDocumentMoniker": "Compute.h",
+              "ToolTip": "C:\\Users\\dylan\\source\\repos\\opengl\\Compute.h",
+              "RelativeToolTip": "Compute.h",
+              "ViewState": "AQIAAEcAAAAAAAAAAAAIwGIAAAAGAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-06-02T23:18:48.213Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

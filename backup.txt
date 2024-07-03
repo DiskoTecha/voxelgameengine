@@ -1,0 +1,272 @@
+#include <glad/glad.h> // Include this first, contains required OpenGL headers
+#include <GLFW/glfw3.h>
+#include <iostream>
+#include "Compute.h"
+#include "Shader.h"
+#include "stb_image.h"
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE))
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+}
+
+void printWorkGroupSizes()
+{
+	int workGroupSizes[3] = { 0 };
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &workGroupSizes[0]);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &workGroupSizes[1]);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &workGroupSizes[2]);
+
+	int workGroupCounts[3] = { 0 };
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &workGroupCounts[0]);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &workGroupCounts[1]);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &workGroupCounts[2]);
+
+	int workGroupInvocations;
+	glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &workGroupInvocations);
+
+	std::cout << "work group sizes: " << workGroupSizes[0] << " " << workGroupSizes[1] << " " << workGroupSizes[2] << std::endl;
+	std::cout << "work group counts: " << workGroupCounts[0] << " " << workGroupCounts[1] << " " << workGroupCounts[2] << std::endl;
+	std::cout << "work group invocations: " << workGroupInvocations << std::endl;
+}
+
+unsigned int createReadTexture(float* values)
+{
+	// Create the read texture
+	unsigned int readTex;
+	glGenTextures(1, &readTex);
+	glActiveTexture(GL_TEXTURE0 + 0);
+
+	// Bind the texture to the GL_TEXTURE_2D for the next texture calls to GL_TEXTURE_2D
+	glBindTexture(GL_TEXTURE_1D, readTex);
+
+	// Set the texture wrapping/filtering options for the currently bound texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_R32F, 216000, 0, GL_RED, GL_FLOAT, values);
+
+	// Bind the image texture for read only
+	glBindImageTexture(0, readTex, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+
+	return readTex;
+}
+
+unsigned int createWriteTexture(unsigned int textureWidth, unsigned int textureHeight)
+{
+	// Create texture/image to write to
+	unsigned int writeTex;
+	glGenTextures(1, &writeTex);
+	glActiveTexture(GL_TEXTURE0 + 1);
+
+	// Bind the texture to the GL_TEXTURE_2D for the next texture calls to GL_TEXTURE_2D
+	glBindTexture(GL_TEXTURE_2D, writeTex);
+
+	// Set the texture wrapping/filtering options for the currently bound texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, textureWidth, textureHeight, 0, GL_RED, GL_FLOAT, NULL);
+
+	// Bind the image texture for write only
+	glBindImageTexture(1, writeTex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+
+	return writeTex;
+}
+
+int main(int argc, char* argv[])
+{
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+	const unsigned int imageWidth = 600;
+	const unsigned int imageHeight = 600;
+
+	GLFWwindow* window = glfwCreateWindow(imageWidth, imageHeight, "OpenGL", NULL, NULL);
+	if (window == NULL)
+	{
+		std::cout << "Failed to create GLFWwindow" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+
+	printWorkGroupSizes();
+
+	Shader shaderProgram("shader.vert", "shader.frag");
+
+	// Define the width and height of the texture (same size as screen for now)
+	unsigned int textureWidth = imageWidth;
+	unsigned int textureHeight = imageHeight;
+
+	float* values = new float[216000];
+	for (int i = 0; i < 216000; i++)
+	{
+		values[i] = 1.0;
+	}
+
+	unsigned int dataTex = createReadTexture(values);
+
+	unsigned int imageTex = createWriteTexture(textureWidth, textureHeight);
+
+	// Create compute shader and compile
+	Compute compute("shader.comp", textureWidth, textureHeight);
+
+	// Triangle vertices
+	float vertices[] = 
+	{
+		 1.0f,  1.0f, 0.0f,    1.0f, 0.0f, 0.0f,    1.0f, 1.0f, // Top right
+		 1.0f, -1.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 0.0f, // Bottom right
+		-1.0f, -1.0f, 0.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, // Bottom left
+		-1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 0.0f,    0.0f, 1.0f  // Top left
+	};
+
+	unsigned int indices[] =
+	{
+		0, 1, 3,
+		1, 2, 3
+	};
+
+	// Generate Vertex Buffer Object
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+
+	// Generate Element Buffer Object
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
+
+	// Create a vertex array object which will store the vertex buffer and vertexattribpointers into the object
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+
+	// Bind it to start storing those calls
+	glBindVertexArray(VAO);
+
+	// Bind the VertexBufferObject to the GL_ARRAY_BUFFER target
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	// Copy vertex data into buffer's memory on the GPU
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Bind the Element Buffer Object to the GL_ELEMENT_ARRAY target
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+	// Copy index data into the element buffer's memory on the GPU
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// Tell OpenGL how the vertex data is stored
+	// 1st parameter ::: Which vertex attribute to configure (0 in this case because we set the location of the position passed to 
+	//     the vertex shader with layout (location = 0)
+	// 2nd parameter ::: How many values in attribute (3 in this case, because it is vec3 so composed of 3 values)
+	// 3rd parameter ::: What type of data are the values (GL_FLOAT in this case, vec3 is comprised of floats)
+	// 4th parameter ::: Should OpenGL normalize the data to float between 0 and 1 (good if passing integers into the shader,
+	//     but we're passing floats so no normalization needed.
+	// 5th parameter ::: What is the size of the stride (3 * sizeof(float) because we are passing in floats in trios basically,
+	//     but this could be set to zero since the float array is tightly packed, and there is nothing besides the float values
+	//     between the next float values.
+	// 6th parameter ::: What is the offset of the beginning of the position data (0 in this case because it starts at the beginning
+	//     of the passed array, and it has to be a void* so it is casted)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	
+	// Enable the vertex attribute, with location = 0 for the vec3 attribute we're passing
+	glEnableVertexAttribArray(0);
+
+	// Vertex attrib pointer for vertex color data
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	// Enable the vertex attribute with location = 1 for the vec3 color attribute we're passing
+	glEnableVertexAttribArray(1);
+
+	// Vertex attrib pointer for texture coordinates we're passing
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+	// Enable tex coords vertex attrib array with location = 2 for the vec2 tex coords attribute we're passing
+	glEnableVertexAttribArray(2);
+
+	//glUseProgram(computeProgram);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, readTex);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, textureWidth, textureHeight, 0, GL_RGBA32F, GL_FLOAT, NULL);
+
+	float* imageValues = new float[imageWidth * imageHeight * 4];
+	for (int i = 0; i < imageWidth * imageHeight * 4; i++)
+	{
+		imageValues[i] = 0.0;
+	}
+	
+	// Render loop
+	while (!glfwWindowShouldClose(window))
+	{
+		// Process Input
+		processInput(window);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, dataTex);
+
+		// Launch compute shaders
+		compute.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, dataTex);
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, imageTex);
+		compute.dispatch();
+
+		// Make sure writing to image has finished before read
+		compute.wait();
+
+		// Rendering commands
+		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Use the shader program for all following render calls
+		shaderProgram.use();
+		glBindVertexArray(VAO);
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, imageTex);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render it wireframe
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Revert back to full fill instead of wireframe
+		glBindVertexArray(0);
+
+		glGetTexImage(GL_TEXTURE_2D, 1, GL_RGBA32F, GL_FLOAT, imageValues);
+
+		// Swap buffers and poll IO events
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	for (int i = 0; i < 100; i++)
+	{
+		std::cout << imageValues[i] << " ";
+	}
+
+	delete[] values;
+	delete[] imageValues;
+
+	glfwTerminate();
+	return 0;
+}

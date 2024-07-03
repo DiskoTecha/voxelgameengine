@@ -1,0 +1,538 @@
+#version 430
+
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(rgba32f, binding = 0) uniform image2D img_output;
+//layout(rgba32f, binding = 1) uniform image2D img_input;
+
+uniform samplerBuffer bufferTexture;
+
+struct Ray
+{
+	vec3 origin;
+	vec3 direction;
+};
+
+struct Camera
+{
+	int screenHeight;
+	int screenWidth;
+	float viewportHeight;
+	float viewportWidth;
+	float focalLength;
+	vec3 position;
+	vec3 viewportU;
+	vec3 viewportV;
+	vec3 pixelDeltaU;
+	vec3 pixelDeltaV;
+	vec3 viewportUpperLeft;
+	vec3 pixel00Position;
+};
+
+struct Camera getCamera(int screenWidth, int screenHeight, float viewportHeight, float focalLength, vec3 startingPos = vec3(0, 0, 0))
+{
+	struct Camera camera;
+
+	camera.screenHeight = screenHeight;
+	camera.screenWidth = screenWidth;
+	camera.viewportHeight = viewportHeight;
+	camera.viewportWidth = viewportHeight * (float(screenWidth) / float(screenHeight));
+	camera.focalLength = focalLength;
+	camera.position = startingPos;
+	camera.viewportU = vec3(camera.viewportWidth, 0, 0);
+	camera.viewportV = vec3(0, -viewportHeight, 0);
+	camera.pixelDeltaU = vec3(camera.viewportWidth / screenWidth, 0, 0);
+	camera.pixelDeltaV = vec3(0, -viewportHeight / screenHeight, 0);
+	camera.viewportUpperLeft = camera.position
+		+ vec3(0, 0, focalLength)
+		- camera.viewportU / 2
+		- camera.viewportV / 2;
+	camera.pixel00Position = camera.viewportUpperLeft + 0.5 * (camera.pixelDeltaU + camera.pixelDeltaV);
+
+	return camera;
+}
+
+float voxelGridCeil(float value, float voxelSize)
+{
+	// Buffer to help with rounding errors when value is a multiple of voxel_size
+	float buf = -0.00000000000001;
+	value -= value + buf > 0 ? mod(value + buf, voxelSize) - voxelSize : mod(value + buf, voxelSize);
+	return value;
+}
+
+float voxelGridFloor(float value, float voxelSize)
+{
+	// Buffer to help with rounding errors when value is a multiple of voxel_size
+	float buf = 0.00000000000001;
+	value -= value + buf > 0 ? mod(value + buf, voxelSize) : mod(value + buf, voxelSize) + voxelSize;
+	return value;
+}
+
+struct Ray getStartingRay(int pixelX, int pixelY, vec3 cameraPosition, vec3 pixel00Position, vec3 pixelDeltaU, vec3 pixelDeltaV)
+{
+	// Draw a ray through the center of the pixel from the camera and then march along it
+	vec3 pixelSample = pixel00Position
+		+ (pixelX * pixelDeltaU)
+		+ (pixelY * pixelDeltaV);
+
+	struct Ray ray;
+	ray.origin = pixelSample;                       // Starting position is at the pixel
+	ray.direction = pixelSample - cameraPosition;	// Starting direction is through pixel sample from origin
+
+	return ray;
+}
+
+vec3 findStepVector(vec3 dirSigns, float voxelSize, vec3 checkPos)
+{
+	// Initialize phase
+	vec3 next = vec3(0, 0, 0);
+
+	// dirsigns = (-1, -1, 2)
+	// checkpos = (-0.77, 0.2, 4)
+
+	// Find the step size the ray needs to move to reach the next voxel
+	if (dirSigns.x > 0)
+	{
+		next.x = voxelSize + voxelSize * floor(checkPos.x / voxelSize);
+	}
+	else
+	{
+		next.x = voxelSize * ceil(checkPos.x / voxelSize) - voxelSize;
+	}
+
+	if (dirSigns.y > 0)
+	{
+		next.y = voxelSize + voxelSize * floor(checkPos.y / voxelSize);
+	}
+	else
+	{
+		next.y = voxelSize * ceil(checkPos.y / voxelSize) - voxelSize;
+	}
+
+	if (dirSigns.z > 0)
+	{
+		next.z = voxelSize + voxelSize * floor(checkPos.z / voxelSize);
+	}
+	else
+	{
+		next.z = voxelSize * ceil(checkPos.z / voxelSize) - voxelSize;
+	}
+
+	return next;
+}
+
+vec3 findMinimumTs(vec3 nextStepVector, vec3 rayDir, vec3 checkPos)
+{
+	vec3 ts = (nextStepVector - checkPos) / rayDir;
+	vec3 t_min = vec3(0.0, 0.0, 0.0);
+
+	if (ts.x <= ts.y && ts.x <= ts.z)
+	{
+		t_min.x = ts.x;
+	}
+	if (ts.y <= ts.x && ts.y <= ts.z)
+	{
+		t_min.y = ts.y;
+	}
+	if (ts.z <= ts.x && ts.z <= ts.y)
+	{
+		t_min.z = ts.z;
+	}
+
+	return t_min;
+}
+
+vec3 computeMinimumT(vec3 dirSigns, vec3 rayDir, vec3 checkPos, float voxelSize, float voxelSizeInverse)
+{
+    vec3 step = mix(voxelSize * vec3(ceil(checkPos * voxelSizeInverse)) - voxelSize, 
+					voxelSize * vec3(floor(checkPos * voxelSizeInverse)) + voxelSize, 
+					greaterThan(dirSigns, vec3(0.0)));
+    return (step - checkPos) / rayDir;
+}
+
+//vec3 convertPositionToVoxelIndex(vec3 pos, vec3 voxelOffset, float voxelSize)
+//{
+//	return vec3(
+//		round((pos.x - voxelOffset.x) / voxelSize),
+//		round((pos.y - voxelOffset.y) / voxelSize),
+//		round((pos.z - voxelOffset.z) / voxelSize)
+//	);
+//}
+
+vec3 convertVoxelIndexToPosition(vec3 index, vec3 voxelOffset, float voxelSize)
+{
+	return (index * voxelSize) + voxelOffset;
+}
+
+//vec3 findNextVoxelIndex(vec3 dirSigns, vec3 tMove, vec3 checkPos, vec3 voxelOffset, float voxelSize)
+//{
+//    // Calculate the floor of the checkPos divided by voxelSize
+//    vec3 voxelSizeVec = vec3(voxelSize);
+//    vec3 nextVoxelIndex = floor(checkPos / voxelSizeVec);
+//
+//    // Vectorized offset calculation based on dirSigns
+//    vec3 offset = voxelSizeVec * step(dirSigns, vec3(0.0));
+//    nextVoxelIndex = nextVoxelIndex - offset * (tMove > vec3(0.0));
+//
+//    // Convert to index within the chunk
+//    return convertPositionToVoxelIndex(nextVoxelIndex, voxelOffset, voxelSize);
+//}
+
+int convertVoxelIndexToBufferTextureIndex(vec3 voxelIndex, float voxelSize)
+{
+	return int(voxelIndex.x + voxelIndex.y * voxelSize + voxelIndex.z * voxelSize * voxelSize) + 1;
+}
+
+vec3 convertPositionToVoxelIndex(vec3 pos, vec3 voxelOffset, float voxelSizeInverse)
+{
+	return vec3(
+		round((pos.x - voxelOffset.x) * voxelSizeInverse),
+		round((pos.y - voxelOffset.y) * voxelSizeInverse),
+		round((pos.z - voxelOffset.z) * voxelSizeInverse)
+	);
+}
+
+vec3 findNextVoxelIndex(vec3 dirSigns, vec3 tMove, vec3 checkPos, vec3 voxelOffset, float voxelSize, float voxelSizeInverse)
+{
+    // Calculate the voxel grid coordinates using floor and division
+    vec3 nextVoxelIndex = floor(checkPos * voxelSizeInverse);
+
+    // Vector representing voxelSize
+    vec3 voxelSizeVec = vec3(voxelSize);
+
+    // Predicate vectors for tMove > 0 and dirSigns <= 0
+    vec3 tMoveGtZero = vec3(greaterThan(tMove, vec3(0.0)));
+    vec3 dirSignsLtEqZero = vec3(lessThanEqual(dirSigns, vec3(0.0)));
+
+	// Compute the offset using vectorized logic
+    vec3 offset = (voxelSizeVec * tMoveGtZero) * dirSignsLtEqZero;
+    
+    // Add the offset to the nextVoxelIndex
+    nextVoxelIndex = nextVoxelIndex - offset;
+
+    // Convert to index within the chunk using convertPositionToVoxelIndex
+    return convertPositionToVoxelIndex(nextVoxelIndex, voxelOffset, voxelSizeInverse);
+}
+
+//vec3 findNextVoxelIndex(vec3 dirSigns, vec3 tMove, vec3 checkPos, vec3 voxelOffset, float voxelSize)
+//{
+//	vec3 nextVoxelIndex = vec3(
+//		voxelGridFloor(checkPos.x, voxelSize),
+//		voxelGridFloor(checkPos.y, voxelSize),
+//		voxelGridFloor(checkPos.z, voxelSize)
+//	);
+//	if (tMove.x > 0)
+//	{
+//		nextVoxelIndex.x -= dirSigns.x > 0 ? 0 : voxelSize;
+//	}
+//	if (tMove.y > 0)
+//	{
+//		nextVoxelIndex.y -= dirSigns.y > 0 ? 0 : voxelSize;
+//	}
+//	if (tMove.z > 0)
+//	{
+//		nextVoxelIndex.z -= dirSigns.z > 0 ? 0 : voxelSize;
+//	}
+//
+//	// Convert to index within the chunk
+//	return convertPositionToVoxelIndex(nextVoxelIndex, voxelOffset, voxelSize);
+//}
+
+bool checkValidVoxelIndex(vec3 voxelIndex, uint maxVoxelIndex)
+{
+	return all(greaterThanEqual(voxelIndex, vec3(0)) && lessThan(voxelIndex, vec3(maxVoxelIndex)));
+}
+
+//vec4 getVoxelValueFromChunk(uint x, uint y, uint z, uint chunkSize)
+//{
+//	uint startingIndex = x + y * chunkSize + z * chunkSize * chunkSize + 1;
+//	return imageLoad(img_input, ivec2(startingIndex, 0));
+//}
+
+//void main()
+//{
+//	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+//	vec4 pixel = texelFetch(bufferTexture, 1);
+//	imageStore(img_output, pos, pixel);
+//}
+
+void main()
+{
+	uint VOXEL_SIZE = 1;
+
+	uint CHUNK_SIZE = 40;
+
+	uint CHUNK_SIZE_SQUARED = 1600;
+
+	vec3 MIN_VOXEL_POSITION = texelFetch(bufferTexture, 0).rgb;
+
+	uint MAX_VOXEL_INDEX = CHUNK_SIZE - 1;
+
+	vec3 VOXEL_OFFSET = MIN_VOXEL_POSITION * VOXEL_SIZE;
+
+	ivec2 dims = imageSize(img_output);
+
+	struct Camera camera = getCamera(dims.x, dims.y, 3.0f, 1.0f, vec3(0, 0, 0));
+
+	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+	int pixel_x = pos.x;
+	int pixel_y = pos.y;
+
+	// Get the ray that we will march, starting at the center of the pixel in the direction from the camera to the pixel
+	struct Ray ray = getStartingRay(pixel_x, pixel_y, camera.position, camera.pixel00Position,
+		camera.pixelDeltaU, camera.pixelDeltaV);
+
+	// Next position to check
+	vec3 checkPos = ray.origin;
+
+	bool hit = false;
+	bool entered = false;
+	float t_max = 100.0f;
+	float t = 0.0f;
+
+	while (!hit && t <= t_max)
+	{
+		// If the direction is positive, then go to the voxel greater, otherwise go to the voxel less
+		vec3 step = mix(ceil(checkPos) - VOXEL_SIZE, 
+				floor(checkPos) + VOXEL_SIZE, 
+				greaterThanEqual(ray.direction, vec3(0.0)));
+		vec3 tMove = (step - checkPos) / ray.direction;
+
+		if (any(lessThanEqual(tMove, vec3(0.0f))))
+		{
+			// Draw the pixel
+			imageStore(img_output, ivec2(pixel_x, pixel_y), vec4(1.0f, 0.0f, 0.0f, 1.0f));
+			hit = true;
+			return;
+		}
+
+		// Checking phase
+		vec3 tMin = min(min(tMove, tMove.yzx), tMove.zxy);
+		t += tMin.x;
+		checkPos = ray.origin + ray.direction * t;
+		tMove = mix(tMin, vec3(0.0f), greaterThan(tMove, tMin));
+
+		// Calculate the voxel grid coordinates using floor
+		vec3 nextVoxelPosition = floor(checkPos + 0.0001f);
+
+		// Predicate vectors for tMove > 0 and dirSigns <= 0
+		vec3 tMoveGtZero = vec3(greaterThan(tMove, vec3(0.0)));
+		vec3 dirSignsLtEqZero = vec3(lessThanEqual(ray.direction, vec3(0.0)));
+
+		// Compute the offset using vectorized logic
+		vec3 offset = tMoveGtZero * dirSignsLtEqZero;
+    
+		// Add the offset to the nextVoxelIndex
+		nextVoxelPosition = nextVoxelPosition - offset;
+
+		// Convert to index within the chunk using convertPositionToVoxelIndex
+		vec3 voxelIndexToCheck = vec3(
+			round((nextVoxelPosition.x - VOXEL_OFFSET.x)),
+			round((nextVoxelPosition.y - VOXEL_OFFSET.y)),
+			round((nextVoxelPosition.z - VOXEL_OFFSET.z))
+		);
+
+		// Check if point is within chunk (voxel index should be valid)
+		if (all(greaterThanEqual(voxelIndexToCheck, vec3(0)) && lessThan(voxelIndexToCheck, vec3(MAX_VOXEL_INDEX))))
+		{
+			entered = true;
+			// If there is a voxel at that point (alpha is not zero), then the ray hits
+			int bufferIndex = int(voxelIndexToCheck.x + voxelIndexToCheck.y * CHUNK_SIZE + voxelIndexToCheck.z * CHUNK_SIZE_SQUARED) + 1;
+			vec4 pixel = texelFetch(bufferTexture, bufferIndex);
+
+			if (pixel.a >= 0.001f)
+			{
+				// Draw the pixel
+				imageStore(img_output, ivec2(pixel_x, pixel_y), pixel);
+				hit = true;
+			}
+		}
+
+		// If the chunk has been entered and then exited, break the while loop
+		else if (entered)
+		{
+//			imageStore(img_output, ivec2(pixel_x, pixel_y), vec4(0.0f));
+			break;
+		}
+	}
+}
+
+void oldMain()
+{
+	// ```````VOXEL SIZE`````````
+	float VOXEL_SIZE = texelFetch(bufferTexture, 0).a;
+
+	// ````VOXEL SIZE INVERSE````
+	float VOXEL_SIZE_INVERSE = 1 / VOXEL_SIZE;
+	
+	// ````````CHUNK SIZE````````
+	uint CHUNK_SIZE = 40;
+
+	// ````MIN VOXEL POSITION````
+	vec3 MIN_VOXEL_POSITION = texelFetch(bufferTexture, 0).rgb;
+
+	// `````MAX VOXEL INDEX``````
+	uint MAX_VOXEL_INDEX = CHUNK_SIZE - 1;
+
+	// ```````VOXEL OFFSET```````
+	vec3 VOXEL_OFFSET = MIN_VOXEL_POSITION * VOXEL_SIZE;
+
+	// Fetch image dimensions
+	ivec2 dims = imageSize(img_output);
+
+	//Create camera
+	struct Camera camera = getCamera(dims.x, dims.y, 3.0f, 1.0f, vec3(0, 0, 0));
+
+	// Max march distance
+	float t_max = 50.0;
+
+	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+	int pixel_x = pos.x;
+	int pixel_y = pos.y;
+
+	struct Ray ray = getStartingRay(pixel_x, pixel_y, camera.position, camera.pixel00Position,
+		camera.pixelDeltaU, camera.pixelDeltaV);
+
+	// Hit flag and starting t
+	bool hit = false;
+	float t = 0.0f;
+
+	// Starting position
+	vec3 checkPos = ray.origin;
+	vec3 dirSigns = vec3(0.0, 0.0, 0.0);
+	dirSigns.x = ray.direction.x >= 0 ? 1 : -1;
+	dirSigns.y = ray.direction.y >= 0 ? 1 : -1;
+	dirSigns.z = ray.direction.z >= 0 ? 1 : -1;
+
+	// Entered the chunk flag
+	bool entered = false;
+
+	while (!hit && t <= t_max)
+	{
+		// Find the t's needed to move the ray this far, and keep the shortest
+		vec3 tMove = computeMinimumT(dirSigns, ray.direction, checkPos, VOXEL_SIZE, VOXEL_SIZE_INVERSE);
+
+		// Checking phase
+		vec3 tMin = min(min(tMove, tMove.yzx), tMove.zxy);
+		t += tMin.x;
+		checkPos = ray.origin + ray.direction * t;
+		tMove = mix(vec3(0.0f), tMin, greaterThanEqual(tMove, tMin));
+		vec3 voxelIndexToCheck = findNextVoxelIndex(dirSigns, tMove, checkPos, VOXEL_OFFSET, VOXEL_SIZE, VOXEL_SIZE_INVERSE);
+
+		// Check if point is within chunk (voxel index should be valid)
+		if (checkValidVoxelIndex(voxelIndexToCheck, MAX_VOXEL_INDEX))
+		{
+			entered = true;
+			// If there is a voxel at that point (alpha is not zero), then the ray hits
+			int bufferIndex = convertVoxelIndexToBufferTextureIndex(voxelIndexToCheck, VOXEL_SIZE);
+			vec4 pixel = texelFetch(bufferTexture, 1);
+			imageStore(img_output, ivec2(pixel_x, pixel_y), pixel);
+
+			if (pixel.a >= 0.001f)
+			{
+				// Draw the pixel
+				imageStore(img_output, ivec2(pixel_x, pixel_y), pixel);
+				hit = true;
+			}
+		}
+		// If the chunk has been entered and then exited, break the while loop
+		else if (entered)
+		{
+			imageStore(img_output, ivec2(pixel_x, pixel_y), vec4(0.0f));
+		}
+	}
+	// output to a specific pixel in the image
+	// imageStore(img_output, pixel_coords, pixel);
+}
+
+//void main()
+//{
+//	// ```````VOXEL SIZE`````````
+//	float VOXEL_SIZE = 0.2;
+//	
+//	// ````````CHUNK SIZE````````
+//	uint CHUNK_SIZE = 40;
+//
+//	// ````MIN VOXEL POSITION````
+//	vec3 MIN_VOXEL_POSITION = imageLoad(img_input, ivec2(0, 0)).rgb;
+//
+//	// ````MAX VOXEL POSITION````
+//	vec3 MAX_VOXEL_POSITION = MIN_VOXEL_POSITION + CHUNK_SIZE;
+//
+//	// `````MAX VOXEL INDEX``````
+//	uint MAX_VOXEL_INDEX = CHUNK_SIZE - 1;
+//
+//	// ```````VOXEL OFFSET```````
+//	vec3 VOXEL_OFFSET = MIN_VOXEL_POSITION * VOXEL_SIZE;
+//
+//	// Fetch image dimensions
+//	ivec2 dims = imageSize(img_output);
+//
+//	//Create camera
+//	struct Camera camera = getCamera(dims.x, dims.y, 2.0, 1.0, vec3(0, 0, 0));
+//
+//	// Max march distance
+//	float t_max = 50.0;
+//
+//	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+//	int pixel_x = pos.x;
+//	int pixel_y = pos.y;
+//
+//	struct Ray ray = getStartingRay(pixel_x, pixel_y, camera.position, camera.pixel00Position,
+//		camera.pixelDeltaU, camera.pixelDeltaV);
+//
+//	// Hit flag and starting t
+//	bool hit = false;
+//	float t = 0.0;
+//
+//	// Starting position
+//	vec3 checkPos = ray.origin;
+//	vec3 dirSigns = vec3(0.0, 0.0, 0.0);
+//	dirSigns.x = ray.direction.x >= 0 ? 1 : -1;
+//	dirSigns.y = ray.direction.y >= 0 ? 1 : -1;
+//	dirSigns.z = ray.direction.z >= 0 ? 1 : -1;
+//
+//	// Entered the chunk flag
+//	bool entered = false;
+//
+//	while (!hit && t <= t_max)
+//	{
+//		// Initialize phase
+//		vec3 next = findStepVector(dirSigns, VOXEL_SIZE, checkPos);
+//
+//		// Find the t's needed to move the ray this far, and keep the shortest
+//		vec3 tMove = findMinimumTs(next, ray.direction, checkPos);
+//
+//		// Checking phase
+//		t += tMove.x > 0 ? tMove.x : (tMove.y > 0 ? tMove.y : tMove.z); // TODO check if tMove is guaranteed to only have x, y, or z greater than zero then implement greaterThan() function to vector wise this thang
+//		checkPos = ray.origin + ray.direction * t;
+//		vec3 voxelIndexToCheck = findNextVoxelIndex(dirSigns, tMove, checkPos, VOXEL_OFFSET, VOXEL_SIZE);
+//
+//		// Check if point is within chunk (voxel index should be valid)
+//		if (checkValidVoxelIndex(voxelIndexToCheck, MAX_VOXEL_INDEX))
+//		{
+//			entered = true;
+//			// If there is a voxel at that point, then the ray hits
+//			//	float inValue = imageLoad(img_input, pixel_coords).r;
+////			vec4 pixel = getVoxelValueFromChunk(uint(voxelIndexToCheck.x), uint(voxelIndexToCheck.y), uint(voxelIndexToCheck.z), CHUNK_SIZE);
+////			vec4 pixel = vec4(voxelIndexToCheck.x / MAX_VOXEL_INDEX, voxelIndexToCheck.y / MAX_VOXEL_INDEX, voxelIndexToCheck.z / MAX_VOXEL_INDEX, 1.0);
+//			vec4 pixel = imageLoad(img_input, ivec2(0, 0));
+//			imageStore(img_output, ivec2(pixel_x, pixel_y), pixel);
+//
+//			if (pixel.a != 0.0)
+//			{
+//				// Draw the pixel
+//				imageStore(img_output, ivec2(pixel_x, pixel_y), pixel);
+//				hit = true;
+//			}
+//		}
+//		// If the chunk has been entered and then exited, break the while loop
+//		else if (entered)
+//		{
+//			return;
+//		}
+//	}
+//	// output to a specific pixel in the image
+////	imageStore(img_output, pixel_coords, pixel);
+//	// input a specific pixel to a value
+////	float inValue = imageLoad(img_input, pixel_coords).r;
+//}

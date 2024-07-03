@@ -1,0 +1,17 @@
+﻿  Main.cpp
+C:\Users\dylan\source\repos\opengl\Chunk.h(37,86): warning C4244: 'argument': conversion from 'size_t' to 'const float', possible loss of data
+  (compiling source file 'Main.cpp')
+  
+C:\Users\dylan\source\repos\opengl\Chunk.h(66,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'Main.cpp')
+  
+C:\Users\dylan\source\repos\opengl\Chunk.h(85,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'Main.cpp')
+  
+C:\Users\dylan\source\repos\opengl\Chunk.h(94,23): warning C4267: 'return': conversion from 'size_t' to 'const int', possible loss of data
+  (compiling source file 'Main.cpp')
+  
+C:\Users\dylan\source\repos\opengl\Chunk.h(112,16): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'Main.cpp')
+  
+  opengl.vcxproj -> C:\Users\dylan\source\repos\opengl\x64\Debug\opengl.exe
