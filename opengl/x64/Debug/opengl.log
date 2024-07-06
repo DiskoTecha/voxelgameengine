@@ -14,4 +14,5 @@ C:\Users\dylan\source\repos\opengl\Chunk.h(94,23): warning C4267: 'return': conv
 C:\Users\dylan\source\repos\opengl\Chunk.h(112,16): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
   (compiling source file 'Main.cpp')
   
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
   opengl.vcxproj -> C:\Users\dylan\source\repos\opengl\x64\Debug\opengl.exe

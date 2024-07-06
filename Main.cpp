@@ -172,10 +172,22 @@ int main(int argc, char* argv[])
 	chunk1.set(22, 20, 3, Color4(0.3f, 0.2f, 0.1f, 1.0f));
 	chunk1.set(20, 22, 1, Color4(1.0f, 1.0f, 1.0f, 1.0f));
 	chunk1.set(12, 0, 20, Color4(1.0f, 0.7f, 1.0f, 1.0f));
-	chunk1.set(9, 20, 3, Color4(0.3f, 0.2f, 0.1f, 1.0f));
 	chunk1.set(25, 28, 1, Color4(1.0f, 1.0f, 1.0f, 1.0f));
+	chunk1.set(0, 0, 0, Color4(1.0f, 1.0f, 1.0f, 1.0f));
 	float* chunkData = chunk1.getArrayPointer();
 	size_t chunkDataSize = chunk1.getArrayPointerByteSize();
+
+	for (int i = 4; i < 8; i++)
+	{
+		std::cout << chunkData[i] << std::endl;
+	}
+
+	chunk1.set(0, 0, 0, Color4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	for (int i = 4; i < 8; i++)
+	{
+		std::cout << chunkData[i] << std::endl;
+	}
 
 	// Create texture
 	GLuint tex_input;
@@ -189,7 +201,7 @@ int main(int argc, char* argv[])
 	glBindBuffer(GL_TEXTURE_BUFFER, tex_buffer);
 
 	// Create mutable buffer storage
-	glBufferData(GL_TEXTURE_BUFFER, chunkDataSize, chunkData, GL_STATIC_DRAW);
+	glBufferData(GL_TEXTURE_BUFFER, chunkDataSize, chunkData, GL_DYNAMIC_DRAW);
 
 	// Link texture to buffer to create texture buffer
 	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, tex_buffer);
@@ -198,7 +210,9 @@ int main(int argc, char* argv[])
 
 	double prevTime = 0.0;
 	double currentTime = 0.0;
+	double prevTimeGrav = glfwGetTime();
 	double timeDiff;
+	unsigned int yVoxel = 0;
 	unsigned int counter = 0;
 
 	// Disable vsync
@@ -218,11 +232,44 @@ int main(int argc, char* argv[])
 			std::string FPS = std::to_string((1.0 / timeDiff) * counter);
 			std::string ms = std::to_string((timeDiff / counter) * 1000);
 			std::string title = FPS + " fps :: " + ms + " ms";
+
 			// Update title with fps and ms per frame
 			glfwSetWindowTitle(window, title.c_str());
 
 			prevTime = currentTime;
 			counter = 0;
+		}
+
+		// Drop a voxel every third of a second
+		if (currentTime - prevTimeGrav >= 0.08)
+		{
+			// Set the old voxel to be 0 alpha
+			chunk1.clearVoxels();
+
+			// Increment the y voxel index
+			yVoxel += 1;
+			
+			// Check that the index isn't out of index, if it is just restart the drop from the top
+			if (yVoxel > 39)
+			{
+				yVoxel = 0;
+			}
+
+			// Set the new voxel
+			chunk1.set(22, yVoxel, 3, Color4(0.05f, 0.8f, 0.05f, 1.0f));
+
+			chunkData = chunk1.getArrayPointer();
+
+			glActiveTexture(GL_TEXTURE0);
+
+			// Rebind the texture buffer
+			glBindBuffer(GL_TEXTURE_BUFFER, tex_buffer);
+
+			// Create mutable buffer storage with new chunk data
+			glBufferData(GL_TEXTURE_BUFFER, chunkDataSize, chunkData, GL_DYNAMIC_DRAW);
+
+			// Reset the counter
+			prevTimeGrav = currentTime;
 		}
 
 		// Process Input
